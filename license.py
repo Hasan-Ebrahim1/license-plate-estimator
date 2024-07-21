@@ -42,7 +42,6 @@ def extract_features(plate_number):
     features['repeats_and_serial'] = count_repeats(plate_number) * is_serial(plate_number)
     features['zeros_and_repeats'] = plate_number.count('0') * count_repeats(plate_number)
     return features
-
 # Apply feature extraction to each plate number
 df_features = df['Plate no'].apply(lambda x: pd.Series(extract_features(str(x))))
 df = pd.concat([df, df_features], axis=1)
@@ -119,3 +118,4 @@ print(f'The estimated price for the plate number {user_plate_number} is {predict
 # Debug: Compare predicted and actual prices for all records
 df['Predicted Price'] = model.predict(scaler.transform(X))
 
+print("Hello World")
