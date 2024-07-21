@@ -118,4 +118,3 @@ print(f'The estimated price for the plate number {user_plate_number} is {predict
 # Debug: Compare predicted and actual prices for all records
 df['Predicted Price'] = model.predict(scaler.transform(X))
 
-print("Hello World")
