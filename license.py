@@ -20,8 +20,13 @@ def is_palindrome(s):
 def is_serial(s):
     return all(int(s[i]) == int(s[i-1]) + 1 for i in range(1, len(s))) or all(int(s[i]) == int(s[i-1]) - 1 for i in range(1, len(s)))
 
+def is_double_sequential(s):
+    return all(s[i] == s[i + 1] and (int(s[i]) == int(s[i + 2]) + 1 or int(s[i]) == int(s[i + 2]) - 1) for i in range(0, len(s) - 2, 2))
+
 def is_duplicated_and_serial(s):
-    return len(s) % 2 == 0 and all(s[i] == s[i + len(s)//2] for i in range(len(s)//2)) and (is_serial(s[:len(s)//2]) or is_serial(s[len(s)//2:]))
+    return (len(s) % 2 == 0 and 
+            all(s[i] == s[i + len(s)//2] for i in range(len(s)//2)) and 
+            (is_serial(s[:len(s)//2]) or is_serial(s[len(s)//2:])))
 
 def count_repeats(s):
     return len(s) - len(set(s))
@@ -31,17 +36,33 @@ def longest_consecutive_repeats(s):
 
 def extract_features(plate_number):
     features = {}
-    features['num_digits'] = len(plate_number)
-    features['num_zeros'] = plate_number.count('0')
-    features['num_repeats'] = count_repeats(plate_number)
-    features['longest_consecutive_repeats'] = longest_consecutive_repeats(plate_number)
-    features['palindrome'] = is_palindrome(plate_number)
-    features['serial'] = is_serial(plate_number)
-    features['duplicated_and_serial'] = is_duplicated_and_serial(plate_number)
+    length = len(plate_number)
+    # Adjust weights based on the length of the plate number
+    if length == 4:
+        weight_factor = 6
+    elif length == 5:
+        weight_factor = 3
+    else:
+        weight_factor = 1
+    
+    features['num_digits'] = length
+    features['num_zeros'] = plate_number.count('0') * weight_factor
+    features['num_repeats'] = count_repeats(plate_number) * weight_factor
+    features['longest_consecutive_repeats'] = longest_consecutive_repeats(plate_number) * weight_factor
+    features['palindrome'] = is_palindrome(plate_number) * weight_factor
+    if length == 6 and is_palindrome(plate_number):
+        features['palindrome'] *= (1/3)  # Decrease the influence by 1/3 for 6-digit palindromes
+    features['serial'] = is_serial(plate_number) * weight_factor
+    features['double_sequential'] = is_double_sequential(plate_number) * weight_factor
+    features['duplicated_and_serial'] = is_duplicated_and_serial(plate_number) * weight_factor
     # Interaction features
-    features['repeats_and_serial'] = count_repeats(plate_number) * is_serial(plate_number)
-    features['zeros_and_repeats'] = plate_number.count('0') * count_repeats(plate_number)
+    features['repeats_and_serial'] = count_repeats(plate_number) * is_serial(plate_number) * weight_factor
+    features['zeros_and_repeats'] = plate_number.count('0') * count_repeats(plate_number) * weight_factor
+    features['double_and_repeats'] = is_double_sequential(plate_number) * count_repeats(plate_number) * weight_factor
+    features['zeros_and_serial'] = plate_number.count('0') * is_serial(plate_number) * weight_factor
+    features['palindrome_and_repeats'] = is_palindrome(plate_number) * count_repeats(plate_number) * weight_factor
     return features
+
 # Apply feature extraction to each plate number
 df_features = df['Plate no'].apply(lambda x: pd.Series(extract_features(str(x))))
 df = pd.concat([df, df_features], axis=1)
@@ -52,8 +73,11 @@ print("Dataset with features:\n", df.head())
 # Check feature correlation with price
 print("Feature correlation with price:\n", df.corr()['Price'])
 
+# Ensure no missing values
+df.fillna(0, inplace=True)
+
 # Split data into features (X) and target (y)
-X = df[['num_digits', 'num_zeros', 'num_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats']]
+X = df[['num_digits', 'num_zeros', 'num_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'double_sequential', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats', 'double_and_repeats', 'zeros_and_serial', 'palindrome_and_repeats']]
 y = df['Price']
 
 # Scale features
@@ -117,4 +141,3 @@ print(f'The estimated price for the plate number {user_plate_number} is {predict
 
 # Debug: Compare predicted and actual prices for all records
 df['Predicted Price'] = model.predict(scaler.transform(X))
-
