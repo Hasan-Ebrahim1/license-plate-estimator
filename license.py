@@ -61,6 +61,10 @@ def extract_features(plate_number):
     features['double_and_repeats'] = is_double_sequential(plate_number) * count_repeats(plate_number) * weight_factor
     features['zeros_and_serial'] = plate_number.count('0') * is_serial(plate_number) * weight_factor
     features['palindrome_and_repeats'] = is_palindrome(plate_number) * count_repeats(plate_number) * weight_factor
+    
+    # Additional interaction features for better accuracy
+    features['num_repeats_and_length'] = count_repeats(plate_number) * length * weight_factor
+    features['serial_and_length'] = is_serial(plate_number) * length * weight_factor
     return features
 
 # Apply feature extraction to each plate number
@@ -77,7 +81,7 @@ print("Feature correlation with price:\n", df.corr()['Price'])
 df.fillna(0, inplace=True)
 
 # Split data into features (X) and target (y)
-X = df[['num_digits', 'num_zeros', 'num_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'double_sequential', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats', 'double_and_repeats', 'zeros_and_serial', 'palindrome_and_repeats']]
+X = df[['num_digits', 'num_zeros', 'num_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'double_sequential', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats', 'double_and_repeats', 'zeros_and_serial', 'palindrome_and_repeats', 'num_repeats_and_length', 'serial_and_length']]
 y = df['Price']
 
 # Scale features
@@ -113,7 +117,9 @@ model.fit(X_train, y_train)
 
 # Check feature importances
 feature_importances = model.feature_importances_
-print("Feature importances:", feature_importances)
+feature_names = X.columns
+feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': feature_importances})
+print(feature_importance_df.sort_values(by='Importance', ascending=False))
 
 # Evaluate the model on the test set
 y_pred = model.predict(X_test)
