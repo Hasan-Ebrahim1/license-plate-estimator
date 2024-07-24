@@ -34,6 +34,23 @@ def count_repeats(s):
 def longest_consecutive_repeats(s):
     return max([len(list(g)) for k, g in groupby(s)])
 
+def lower_number_value(s):
+    return sum(10 - int(digit) for digit in s)
+
+def zero_between_features(s):
+    return int('0' in s)
+
+def serial_length_value(s):
+    max_length = 0
+    current_length = 1
+    for i in range(1, len(s)):
+        if int(s[i]) == int(s[i-1]) + 1 or int(s[i]) == int(s[i-1]) - 1:
+            current_length += 1
+            max_length = max(max_length, current_length)
+        else:
+            current_length = 1
+    return max_length
+
 def extract_features(plate_number):
     features = {}
     length = len(plate_number)
@@ -62,6 +79,11 @@ def extract_features(plate_number):
     features['zeros_and_serial'] = plate_number.count('0') * is_serial(plate_number) * weight_factor
     features['palindrome_and_repeats'] = is_palindrome(plate_number) * count_repeats(plate_number) * weight_factor
     
+    # Additional features
+    features['lower_number_value'] = lower_number_value(plate_number) * weight_factor
+    features['zero_between_features'] = zero_between_features(plate_number) * weight_factor
+    features['serial_length_value'] = serial_length_value(plate_number) * weight_factor
+    
     # Additional interaction features for better accuracy
     features['num_repeats_and_length'] = count_repeats(plate_number) * length * weight_factor
     features['serial_and_length'] = is_serial(plate_number) * length * weight_factor
@@ -81,7 +103,7 @@ print("Feature correlation with price:\n", df.corr()['Price'])
 df.fillna(0, inplace=True)
 
 # Split data into features (X) and target (y)
-X = df[['num_digits', 'num_zeros', 'num_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'double_sequential', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats', 'double_and_repeats', 'zeros_and_serial', 'palindrome_and_repeats', 'num_repeats_and_length', 'serial_and_length']]
+X = df[['num_digits', 'num_zeros', 'num_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'double_sequential', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats', 'double_and_repeats', 'zeros_and_serial', 'palindrome_and_repeats', 'lower_number_value', 'zero_between_features', 'serial_length_value', 'num_repeats_and_length', 'serial_and_length']]
 y = df['Price']
 
 # Scale features
