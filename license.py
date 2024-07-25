@@ -68,7 +68,7 @@ def extract_features(plate_number):
     features['longest_consecutive_repeats'] = longest_consecutive_repeats(plate_number) * weight_factor
     features['palindrome'] = is_palindrome(plate_number) * weight_factor
     if length == 6 and is_palindrome(plate_number):
-        features['palindrome'] *= (1/3)  # Decrease the influence by 1/3 for 6-digit palindromes
+        features['palindrome'] *= (1/4)  # Decrease the influence by 1/3 for 6-digit palindromes
     features['serial'] = is_serial(plate_number) * weight_factor
     features['double_sequential'] = is_double_sequential(plate_number) * weight_factor
     features['duplicated_and_serial'] = is_duplicated_and_serial(plate_number) * weight_factor
