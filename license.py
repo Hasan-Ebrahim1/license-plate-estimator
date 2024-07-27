@@ -62,22 +62,26 @@ def extract_features(plate_number):
     else:
         weight_factor = 1
     
+    repeat_count = count_repeats(plate_number)
+    four_repeats = 1 if repeat_count >= 4 else 0
+
     features['num_digits'] = length
     features['num_zeros'] = plate_number.count('0') * weight_factor
-    features['num_repeats'] = count_repeats(plate_number) * weight_factor
+    features['num_repeats'] = repeat_count * weight_factor
+    features['four_repeats'] = four_repeats * 10  # Significantly increase the influence of having 4 or more repeats
     features['longest_consecutive_repeats'] = longest_consecutive_repeats(plate_number) * weight_factor
     features['palindrome'] = is_palindrome(plate_number) * weight_factor
     if length == 6 and is_palindrome(plate_number):
-        features['palindrome'] *= (1/4)  # Decrease the influence by 1/3 for 6-digit palindromes
+        features['palindrome'] *= (1/3)  # Decrease the influence by 1/3 for 6-digit palindromes
     features['serial'] = is_serial(plate_number) * weight_factor
     features['double_sequential'] = is_double_sequential(plate_number) * weight_factor
     features['duplicated_and_serial'] = is_duplicated_and_serial(plate_number) * weight_factor
     # Interaction features
-    features['repeats_and_serial'] = count_repeats(plate_number) * is_serial(plate_number) * weight_factor
-    features['zeros_and_repeats'] = plate_number.count('0') * count_repeats(plate_number) * weight_factor
-    features['double_and_repeats'] = is_double_sequential(plate_number) * count_repeats(plate_number) * weight_factor
+    features['repeats_and_serial'] = repeat_count * is_serial(plate_number) * weight_factor
+    features['zeros_and_repeats'] = plate_number.count('0') * repeat_count * weight_factor
+    features['double_and_repeats'] = is_double_sequential(plate_number) * repeat_count * weight_factor
     features['zeros_and_serial'] = plate_number.count('0') * is_serial(plate_number) * weight_factor
-    features['palindrome_and_repeats'] = is_palindrome(plate_number) * count_repeats(plate_number) * weight_factor
+    features['palindrome_and_repeats'] = is_palindrome(plate_number) * repeat_count * weight_factor
     
     # Additional features
     features['lower_number_value'] = lower_number_value(plate_number) * weight_factor
@@ -85,8 +89,12 @@ def extract_features(plate_number):
     features['serial_length_value'] = serial_length_value(plate_number) * weight_factor
     
     # Additional interaction features for better accuracy
-    features['num_repeats_and_length'] = count_repeats(plate_number) * length * weight_factor
+    features['num_repeats_and_length'] = repeat_count * length * weight_factor
     features['serial_and_length'] = is_serial(plate_number) * length * weight_factor
+    
+    # Debug: Print the features for the given plate number
+    print(f"Plate Number: {plate_number}, Features: {features}")
+    
     return features
 
 # Apply feature extraction to each plate number
@@ -103,7 +111,7 @@ print("Feature correlation with price:\n", df.corr()['Price'])
 df.fillna(0, inplace=True)
 
 # Split data into features (X) and target (y)
-X = df[['num_digits', 'num_zeros', 'num_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'double_sequential', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats', 'double_and_repeats', 'zeros_and_serial', 'palindrome_and_repeats', 'lower_number_value', 'zero_between_features', 'serial_length_value', 'num_repeats_and_length', 'serial_and_length']]
+X = df[['num_digits', 'num_zeros', 'num_repeats', 'four_repeats', 'longest_consecutive_repeats', 'palindrome', 'serial', 'double_sequential', 'duplicated_and_serial', 'repeats_and_serial', 'zeros_and_repeats', 'double_and_repeats', 'zeros_and_serial', 'palindrome_and_repeats', 'lower_number_value', 'zero_between_features', 'serial_length_value', 'num_repeats_and_length', 'serial_and_length']]
 y = df['Price']
 
 # Scale features
