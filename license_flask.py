@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from license_for_flask import predict_price
 
+import os
 
 app = Flask(__name__)
 
