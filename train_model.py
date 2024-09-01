@@ -3,10 +3,8 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
-from license_for_flask import extract_features
+from license_for_flask import extract_features  # Import your feature extraction function
 import joblib
-
-# Assuming extract_features is already defined and imported
 
 # Load your dataset
 df = pd.read_csv('license_plate_prices.csv')
@@ -37,6 +35,6 @@ print(f'Mean Squared Error: {mse}')
 
 # Save the model and scaler to a file
 joblib.dump(model, 'trained_model.pkl')
-joblib.dump(scaler, 'scaler.pkl')  # Save the scaler too for consistent feature scaling
+joblib.dump(scaler, 'scaler.pkl')
 
 print("Model and scaler saved successfully.")
