@@ -3,12 +3,15 @@ import pandas as pd
 import joblib
 from feature_extraction import extract_features
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
 
 # Load the trained model and scaler
 model = joblib.load('trained_model.pkl')
 scaler = joblib.load('scaler.pkl')
+
+CORS(app)
 
 @app.route('/predict', methods=['POST'])
 def predict():
