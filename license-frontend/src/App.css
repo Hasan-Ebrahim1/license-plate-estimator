@@ -1,0 +1,11 @@
+*{
+    margin: 0.3rem;
+    margin-top: 0.5rem;
+}
+
+.App .title{
+    font-family: "Roboto Serif", serif;
+    font-size: 2rem;
+    color: rgb(64, 61, 57);
+    max-width: 20rem;
+}
