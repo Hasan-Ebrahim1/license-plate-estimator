@@ -1,63 +1,76 @@
-import './App.css'
-import React from 'react'
-import { useState, useEffect } from 'react';
-import axios from 'axios'
+import React, { useState } from 'react';
+import axios from 'axios';
+import './App.css';
+
+function Title({ text }) {
+  return <h1 className="title">{text}</h1>;
+}
+
+function LicensePlateInput({ value, onChange, onGo, disableGo }) {
+  return (
+    <div className="license-input-container">
+      <label>Enter your license plate number:</label>
+      <div className="input-button-row">
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          placeholder="Enter 3-6 digits"
+        />
+        <button onClick={onGo} disabled={disableGo}>Go</button>
+      </div>
+    </div>
+  );
+}
+
+function PriceDisplay({ loading, price }) {
+  return (
+    <div className="price-display">
+      {loading ? <span>Loading...</span> : <span>{Math.round(price)} BHD</span>}
+    </div>
+  );
+}
 
 function App() {
-
   const [licensePlateNumber, setLicensePlateNumber] = useState('');
   const [estimatedPrice, setEstimatedPrice] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const onLicensePlateChange = (event) => {
-    setLicensePlateNumber(event.target.value)
-    console.log(licensePlateNumber)
-  }
+    const cleanedValue = event.target.value.replace(/\D/g, '').slice(0, 6);
+    setLicensePlateNumber(cleanedValue);
+  };
 
   const goButton = () => {
-    setLoading(true)
-    axios.post("https://license-plate-estimator.onrender.com/predict", { "plate_number" : licensePlateNumber})
-    .then((res)=> {
-      const response = res.data;
-      console.log(response[0]);
-      setEstimatedPrice(response.predicted_price)
-      setLoading(false)
-    })
-    .catch((err) =>{
-      console.log("error caught: ", err)
-    })
-    
-  }
+    if (licensePlateNumber.length < 3) {
+      alert('Please enter at least 3 digits.');
+      return;
+    }
+
+    setLoading(true);
+    axios
+      .post("https://license-plate-estimator.onrender.com/predict", { plate_number: licensePlateNumber })
+      .then((res) => {
+        setEstimatedPrice(res.data.predicted_price);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error caught: ", err);
+        setLoading(false);
+      });
+  };
 
   return (
     <div className="App">
-      <div className="title">
-        Bahrain License Plate Price Estimator
-      </div>
-      <div className='middle-part'>
-        <div>
-          Enter your license plate number:
-        </div>
-        <div>
-          <div>
-            <input
-              value={licensePlateNumber}
-              onChange={onLicensePlateChange}
-            />
-            <button
-              onClick={goButton}
-            >
-              Go
-            </button>
-          </div>
-          {loading ?
-          
-            <span> Loading... </span>
-            :
-            <span> {Math.round(estimatedPrice)} BHD</span>
-
-          }
-        </div>
+      <Title text="Bahrain License Plate Price Estimator" />
+      <div className="middle-part">
+        <LicensePlateInput 
+          value={licensePlateNumber}
+          onChange={onLicensePlateChange}
+          onGo={goButton}
+          disableGo={licensePlateNumber.length < 3}
+        />
+        <PriceDisplay loading={loading} price={estimatedPrice} />
       </div>
     </div>
   );
